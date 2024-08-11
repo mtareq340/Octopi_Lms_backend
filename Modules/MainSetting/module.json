@@ -1,0 +1,13 @@
+{
+    "name": "MainSetting",
+    "alias": "MainSetting",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\MainSetting\\Providers\\MainSettingServiceProvider"
+    ],
+    "aliases": {},
+    "files": [],
+    "requires": []
+}
