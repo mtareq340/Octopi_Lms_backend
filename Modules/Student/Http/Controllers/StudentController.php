@@ -7,14 +7,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use Modules\Academic\Entities\StudentRegisterCourse;
 use Modules\Student\Entities\Student;
-use Modules\Student\Entities\StudentDivision;
-use Modules\Student\Entities\StudentLevel;
-use Modules\Student\Entities\StudentRegulation;
-use Modules\Student\Entities\StudentSetNumber;
 use Modules\Student\Http\Requests\StudentRequest;
 use Modules\Student\Http\Requests\ChangeStudentActiveRequest;
 use Maatwebsite\Excel\Facades\Excel;
-use Modules\Employee\Entities\Employee;
 use Modules\FacultyMember\Entities\RegisterCourse;
 use Modules\Student\Exports\StudentExport;
 class StudentController extends Controller
@@ -56,7 +51,6 @@ class StudentController extends Controller
     }
     public function store(StudentRequest $request)
     {
-        $employee = Employee::where('id',$request->user_id)->select('user_id')->first();
         $user = User::create([
             'name' => $request->name,
             'username' => $request->national_id,
@@ -108,13 +102,7 @@ class StudentController extends Controller
         $courses = StudentRegisterCourse::where('student_id', $id)->where('academic_year_id', $request->academic_year_id)->where('academic_term_id', $request->academic_term_id)->select('course_id')->with('course')->get();
         return responseJson(1, 'تم ', $courses);
     }
-    public function showFacultyMemberCourses(Request $request, $id)
-    {
-        if(!$id) {return responseJson(0, 'من فضلك إختر الطالب');}
-        $courses = StudentRegisterCourse::where('student_id', $id)->where('academic_year_id', $request->academic_year_id)->where('academic_term_id', $request->academic_term_id)->pluck('course_id')->toArray();
-        $facultyMembers = RegisterCourse::whereIn('course_id',$courses)->where('academic_year_id', $request->academic_year_id)->where('academic_term_id', $request->academic_term_id)->select('faculty_member_id')->with('facultyMember')->get();
-        return responseJson(1, 'تم ', $facultyMembers);
-    }
+    
     public function changeStudentActive(ChangeStudentActiveRequest $request)
     {
         $query = Student::query();
@@ -147,29 +135,16 @@ class StudentController extends Controller
     }
     public function destroy($id)
     {
-        return 0; // when make delete will launch it
-
-        if ($id) {
             $student = Student::find($id);
             if ($student) {
-                if ($student->is_application == 1) {
-                    // $student->StudentCaseConstraint()->delete();
-                    $student->StudentDivision()->delete();
-                    $student->StudentLevel()->delete();
-                    $student->StudentRegulation()->delete();
-                    $student->StudentSetNumber()->delete();
                     $student->delete();
                     $student->user()->delete();
                     return responseJson(1, 'تم المسح بنجاح');
-                } else {
-                    return responseJson(1, 'غير مسموح بالمسح');
-                }
+               
             } else {
                 return responseJson(0, 'الطالب غير موجود');
             }
-        } else {
-            return responseJson(0, 'الطالب غير موجود');
-        }
+     
     }
     public function export(Request $request)
     {
